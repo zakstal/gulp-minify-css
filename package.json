@@ -1,11 +1,13 @@
 {
   "name": "gulp-minify-css",
   "description": "Minify css with clean-css.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": "https://github.com/jonathanepollack/gulp-minify-css.git",
   "homepage": "https://github.com/jonathanepollack/gulp-minify-css",
   "keywords": [
-    "gulpplugin"
+    "gulpplugin",
+    "minify",
+    "css"
   ],
   "main": "./index.js",
   "dependencies": {
