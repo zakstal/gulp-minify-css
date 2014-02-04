@@ -15,9 +15,15 @@
 </tr>
 </table>
 
-## Usage
+## Installion
 
 ```
+npm install --save-dev gulp-minify-css
+```
+
+## Usage
+
+```js
 var minifyCSS = require('gulp-minify-css');
 
 gulp.task('minify-css', function() {
