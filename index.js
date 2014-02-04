@@ -1,5 +1,5 @@
 var es = require('event-stream'),
-	cleanCSS  = require('clean-css'),
+  CleanCSS  = require('clean-css'),
   clone = require('clone'),
   BufferStreams = require('bufferstreams'),
   gutil = require('gulp-util');
@@ -14,11 +14,11 @@ function minifyCSSTransform(opt) {
     if(err) cb(gutil.PluginError('minify-css', err));
 
     // Use the buffered content
-    buf = Buffer(cleanCSS.process(String(buf), opt));
+    buf = Buffer(new CleanCSS(opt).minify(String(buf)));
 
     // Bring it back to streams
     cb(null, buf);
-  }
+  };
 }
 
 // Plugin function
@@ -28,7 +28,6 @@ function minifyCSSGulp(opt){
   function modifyContents(file, cb){
     if(file.isNull()) return cb(null, file);
 
-    
     if(file.isStream()) {
 
       file.contents = file.contents.pipe(new BufferStreams(minifyCSSTransform(opt)));
@@ -38,7 +37,7 @@ function minifyCSSGulp(opt){
 
     var newFile = clone(file);
 
-    var newContents = cleanCSS.process(String(newFile.contents), opt);
+    var newContents = new CleanCSS(opt).minify(String(newFile.contents));
     newFile.contents = new Buffer(newContents);
     cb(null, newFile);
   }
