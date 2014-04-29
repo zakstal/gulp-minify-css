@@ -1,6 +1,5 @@
 var es = require('event-stream'),
   CleanCSS  = require('clean-css'),
-  clone = require('clone'),
   BufferStreams = require('bufferstreams'),
   gutil = require('gulp-util'),
   path = require('path');
@@ -36,7 +35,7 @@ function minifyCSSGulp(opt){
       return cb(null, file);
     }
 
-    var newFile = clone(file);
+    var newFile = file.clone();
 
     // Image URLs are rebased with the assumption that they are relative to the
     // CSS file they appear in (unless "relativeTo" option is explicitly set by
