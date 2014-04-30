@@ -7,7 +7,7 @@
 </tr>
 <tr>
 <td>Description</td>
-<td>Minify css with <a href="https://github.com/GoalSmashers/clean-css">clean-css.</a></td>
+<td>Minify css with <a href="https://github.com/GoalSmashers/clean-css">clean-css</a>, including optional caching.</td>
 </tr>
 <tr>
 <td>Node Version</td>
@@ -18,7 +18,7 @@
 ## Installion
 
 ```
-npm install --save-dev gulp-minify-css
+npm install --save gulp-minify-css
 ```
 
 ## Usage
@@ -34,8 +34,14 @@ gulp.task('minify-css', function() {
 });
 ```
 ### Options
+* `cache` - check and return minified CSS from cache if it exists; minify and store in cache when it does not
+
+This is a gulp-minify-css feature and not a [clean-css](https://github.com/GoalSmashers/clean-css/) feature.
+
+___
+
 * `keepSpecialComments` - `*` for keeping all (default), `1` for keeping first one only, `0` for removing all
-* `keepBreaks` - whether to keep line breaks (default is false)
+* `keepBreaks` - whether to keep line breaks (default is `false`)
 * `benchmark` - turns on benchmarking mode measuring time spent on cleaning up
   (run `npm run bench` to see example)
 * `root` - path to resolve absolute `@import` rules and rebase relative URLs
