@@ -14,7 +14,8 @@
     "event-stream": "~3.1.0",
     "clean-css": "~2.1.8",
     "bufferstreams": "0.0.1",
-    "gulp-util": "~2.2.13"
+    "gulp-util": "~2.2.13",
+    "memory-cache": "0.0.5"
   },
   "engines": {
     "node": ">= 0.10"
@@ -25,7 +26,8 @@
   "devDependencies": {
     "mocha": "~1.17.1",
     "chai": "~1.9.0",
-    "gulp": "~3.5.0"
+    "gulp": "~3.5.0",
+    "proxyquire": "^0.6.0"
   },
   "licenses": [
     {

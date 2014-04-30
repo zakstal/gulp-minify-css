@@ -2,10 +2,41 @@ var es = require('event-stream'),
   CleanCSS  = require('clean-css'),
   BufferStreams = require('bufferstreams'),
   gutil = require('gulp-util'),
-  path = require('path');
+  path = require('path'),
+  cache = require('memory-cache');
+
+function objectIsEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function minify(options, file, buffer) {
+  var rawContents = String(buffer);
+  var cached;
+  if (options.cache &&
+      (cached = cache.get(file.path)) &&
+      cached.raw === rawContents &&
+      objectIsEqual(cached.options, options)) {
+
+      // cache hit
+      css = cached.minified;
+
+  } else {
+    // cache miss or cache not enabled
+    css = new CleanCSS(options).minify(rawContents);
+
+    if (options.cache) {
+      cache.put(file.path, {
+        raw: rawContents,
+        minified: css,
+        options: options
+      });
+    }
+  }
+  return css;
+}
 
 // File level transform function
-function minifyCSSTransform(opt) {
+function minifyCSSTransform(opt, file) {
 
   // Return a callback function handling the buffered content
   return function(err, buf, cb) {
@@ -14,7 +45,7 @@ function minifyCSSTransform(opt) {
     if(err) cb(gutil.PluginError('minify-css', err));
 
     // Use the buffered content
-    buf = Buffer(new CleanCSS(opt).minify(String(buf)));
+    buf = Buffer(minify(opt, file, buf));
 
     // Bring it back to streams
     cb(null, buf);
@@ -30,7 +61,7 @@ function minifyCSSGulp(opt){
 
     if(file.isStream()) {
 
-      file.contents = file.contents.pipe(new BufferStreams(minifyCSSTransform(opt)));
+      file.contents = file.contents.pipe(new BufferStreams(minifyCSSTransform(opt, file)));
 
       return cb(null, file);
     }
@@ -43,7 +74,7 @@ function minifyCSSGulp(opt){
     var relativeToTmp = opt.relativeTo;
     opt.relativeTo = relativeToTmp || path.resolve(path.dirname(file.path));
 
-    var newContents = new CleanCSS(opt).minify(String(newFile.contents));
+    var newContents = minify(opt, file, newFile.contents);
 
     // Restore original "relativeTo" value
     opt.relativeTo = relativeToTmp;
