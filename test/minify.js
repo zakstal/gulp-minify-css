@@ -46,7 +46,7 @@ describe('gulp-minify-css minification', function() {
         var source = fs.readFileSync(filename),
           expected = new CleanCSS(opts).minify(source.toString());
         file.contents.pipe(es.wait(function(err, data) {
-          expect(expected).to.be.equal(data);
+          expect(expected).to.be.equal(data.toString());
           done();
         }));
       }));

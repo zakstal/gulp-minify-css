@@ -12,7 +12,7 @@
   "main": "./index.js",
   "dependencies": {
     "gulp-util": "~2.2.13",
-    "clean-css": "~2.2.8",
+    "clean-css": "~2.2.13",
     "through2": "^0.5.1",
     "bufferstreams": "0.0.1",
     "memory-cache": "0.0.5"
