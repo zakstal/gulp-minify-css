@@ -74,7 +74,12 @@ function minifyCSSGulp(opt){
     var relativeToTmp = opt.relativeTo;
     opt.relativeTo = relativeToTmp || path.resolve(path.dirname(file.path));
 
-    var newContents = minify(opt, file, file.contents);
+    try {
+      var newContents = minify(opt, file, file.contents);
+    } catch (err) {
+      this.emit('error', new gutil.PluginError('minify-css', err));
+      return done(null, file);
+    }
 
     // Restore original "relativeTo" value
     opt.relativeTo = relativeToTmp;
