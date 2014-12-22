@@ -61,6 +61,22 @@ describe('gulp-minify-css minification', function() {
       }));
     });
   });
+
+  describe('with external files', function() {
+    var filename = path.join(__dirname, './fixture/import.css');
+    it('should minify include external files', function(done) {
+      this.timeout(5000);
+      gulp.src(filename)
+        .pipe(minifyCSS(opts))
+        .pipe(es.map(function(file){
+          var source = fs.readFileSync(filename);
+          new CleanCSS(opts).minify(source.toString(), function (errors, expected) {
+            expect(expected).to.be.equal(file.contents.toString());
+            done();
+          });
+        }));
+    });
+  });
 });
 
 describe('does not loose other properties in the file object', function () {
