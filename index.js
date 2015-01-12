@@ -49,7 +49,7 @@ function minifyCSSTransform(opt, file) {
     // Use the buffered content
     minify(opt, file, buf, function (errors, data) {
       // Bring it back to streams
-      cb(null, new Buffer(data));
+      cb(null, new Buffer(data.styles));
     });
   };
 }
@@ -82,7 +82,7 @@ function minifyCSSGulp(opt){
 
         // Restore original "relativeTo" value
         opt.relativeTo = relativeToTmp;
-        file.contents = new Buffer(newContents);
+        file.contents = new Buffer(newContents.styles);
 
         done(errors ? errors[0] : null, file);
       });
