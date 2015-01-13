@@ -22,7 +22,7 @@ describe('gulp-minify-css minification', function() {
       .pipe(minifyCSS(opts))
       .pipe(es.map(function(file){
         var source = fs.readFileSync(filename),
-          expected = new CleanCSS(opts).minify(source.toString());
+          expected = new CleanCSS(opts).minify(source.toString()).styles;
         expect(expected).to.be.equal(file.contents.toString());
         done();
       }));
@@ -44,7 +44,7 @@ describe('gulp-minify-css minification', function() {
       .pipe(minifyCSS(opts))
       .pipe(es.map(function(file){
         var source = fs.readFileSync(filename),
-          expected = new CleanCSS(opts).minify(source.toString());
+          expected = new CleanCSS(opts).minify(source.toString()).styles;
         file.contents.pipe(es.wait(function(err, data) {
           expect(expected).to.be.equal(data.toString());
           done();
@@ -71,7 +71,7 @@ describe('gulp-minify-css minification', function() {
         .pipe(es.map(function(file){
           var source = fs.readFileSync(filename);
           new CleanCSS(opts).minify(source.toString(), function (errors, expected) {
-            expect(expected).to.be.equal(file.contents.toString());
+            expect(expected.styles).to.be.equal(file.contents.toString());
             done();
           });
         }));
