@@ -74,6 +74,9 @@ gulp.task('minify-css', function() {
     .pipe(gulp.dest('dist'));
 });
 ```
+#### Caveats
+
+When minifying (and import inlining) files with existing source map, be aware clean-css doesn't yet support source maps with inline source (`sourcesContent` property).. See [#397](https://github.com/GoalSmashers/clean-css/issues/397).  As such ensure that incoming source maps have properly set `sourceRoot` and `soureces` values to map back to the original source files. 
 
 ## LICENSE
 
