@@ -98,12 +98,12 @@ function minifyCSSGulp(opt){
           map.sources = map.sources.map(function(src){
             if(src === '__stdin__.css'){
               return path.relative(file.base, file.path);
-            }else if (/^https?:\/\//.test(src)){
-              // External @import source.
-              return src;
-            }else{
+            }else if(path.resolve( src ) === path.normalize( src )){
+              // Path is absolute so imported file had no existing source map.
               // Trun absolute path in to path relative to file.base.
               return path.relative(file.base, src);
+            }else{
+              return src;
             }
           });
           
