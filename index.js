@@ -19,7 +19,7 @@ function minify(options, file, buffer, done) {
       objectIsEqual(cached.options, options)) {
 
       // cache hit
-      done(cached.minified);
+      done(null, cached.minified);
 
   } else {
     // cache miss or cache not enabled
