@@ -57,7 +57,7 @@ ___
 * `advanced` - set to false to disable advanced optimizations - selector & property merging, reduction, etc.
 * `aggressiveMerging` - set to false to disable aggressive merging of properties.
 * `benchmark` - turns on benchmarking mode measuring time spent on cleaning up (run `npm run bench` to see example)
-* `compatibility` - enables compatibility mode, see [below for more examples](#how-to-set-compatibility-mode)
+* `compatibility` - enables compatibility mode, see [full README for more examples](https://github.com/jakubpawlowicz/clean-css/blob/master/README.md#how-to-set-compatibility-mode)
 * `debug` - set to true to get minification statistics under `stats` property (see `test/custom-test.js` for examples)
 * `inliner` - a hash of options for `@import` inliner, see test/protocol-imports-test.js for examples
 * `keepBreaks` - whether to keep line breaks (default is false)
