@@ -80,7 +80,7 @@ function minifyCSSGulp(opt){
     
     // Enable sourcemap support if initialized file comes in.
     if (file.sourceMap) {
-      opt.sourceMap = true;
+      opt.sourceMap = JSON.stringify(file.sourceMap);
     }
 
     try {
