@@ -2,12 +2,16 @@
   "name": "gulp-minify-css",
   "description": "Minify css with clean-css.",
   "version": "0.4.5",
-  "repository": "https://github.com/jonathanepollack/gulp-minify-css.git",
-  "homepage": "https://github.com/jonathanepollack/gulp-minify-css",
+  "repository": "jonathanepollack/gulp-minify-css",
   "keywords": [
     "gulpplugin",
     "minify",
-    "css"
+    "optimize",
+    "optimise",
+    "compress",
+    "css",
+    "clean-css"
+  ],
   "files": [
     "index.js"
   ],
@@ -36,7 +40,8 @@
   },
   "licenses": [
     {
-      "type": "MIT"
+      "type": "MIT",
+      "url": "https://github.com/jonathanepollack/gulp-minify-css/blob/master/LICENSE"
     }
   ]
 }
