@@ -8,8 +8,9 @@
     "gulpplugin",
     "minify",
     "css"
+  "files": [
+    "index.js"
   ],
-  "main": "./index.js",
   "engines": {
     "node": ">= 0.10"
   },
