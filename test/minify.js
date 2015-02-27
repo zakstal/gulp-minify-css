@@ -1,16 +1,24 @@
 'use strict';
 
-var gulp = require('gulp'),
-  expect = require('chai').expect,
-  PluginError = require('gulp-util').PluginError,
-  minifyCSS = require('../'),
-  CleanCSS = require('clean-css'),
-  es = require('event-stream'),
-  Stream = require('stream'),
-  path = require('path'),
-  fs = require('fs');
+var bufferstream = require('simple-bufferstream');
+var expect = require('chai').expect;
+var PluginError = require('gulp-util').PluginError;
+var minifyCSS = require('../');
+var File = require('vinyl');
 
 require('mocha');
+
+var fixture = [
+  '/*! foo */',
+  '/* bar */',
+  'a { color: red; }',
+  '/*! baz */\n'
+].join('\n');
+
+var expected = [
+  '/*! foo */',
+  'a{color:red}'
+].join('\n');
 
 describe('gulp-minify-css minification', function() {
   var opts = {
@@ -19,111 +27,57 @@ describe('gulp-minify-css minification', function() {
   };
 
   describe('with buffers', function() {
-    var filename = path.join(__dirname, './fixture/index.css');
     it('should minify my files', function(done) {
-      gulp.src(filename)
-      .pipe(minifyCSS(opts))
-      .pipe(es.map(function(file) {
-        var source = fs.readFileSync(filename),
-          expected = new CleanCSS(opts).minify(source.toString()).styles;
-        expect(expected).to.be.equal(file.contents.toString());
+      minifyCSS(opts)
+      .on('error', done)
+      .on('data', function(file) {
+        expect(String(file.contents)).to.be.equal(expected);
         done();
-      }));
-    });
-
-    it('should return file.contents as a buffer', function(done) {
-      gulp.src(filename)
-      .pipe(minifyCSS())
-      .pipe(es.map(function(file) {
-        expect(file.contents).to.be.an.instanceof(Buffer);
-        done();
-      }));
+      })
+      .end(new File({contents: new Buffer(fixture)}));
     });
   });
 
   describe('with streams', function() {
-    var filename = path.join(__dirname, './fixture/index.css');
     it('should minify my files', function(done) {
-      gulp.src(filename, {buffer: false})
-      .pipe(minifyCSS(opts))
-      .pipe(es.map(function(file) {
-        var source = fs.readFileSync(filename),
-          expected = new CleanCSS(opts).minify(source.toString()).styles;
-        file.contents.pipe(es.wait(function(err, data) {
-          expect(expected).to.be.equal(data.toString());
-          done(err);
-        }));
-      }));
-    });
-
-    it('should return file.contents as a stream', function(done) {
-      gulp.src(filename, {buffer: false})
-      .pipe(minifyCSS(opts))
-      .pipe(es.map(function(file) {
-        expect(file.contents).to.be.an.instanceof(Stream);
-        done();
-      }));
+      minifyCSS(opts)
+      .on('error', done)
+      .on('data', function(file) {
+        file.contents.on('data', function(data) {
+          expect(file.isStream()).to.be.equal(true);
+          expect(String(data)).to.be.equal(expected);
+          done();
+        });
+      })
+      .end(new File({contents: bufferstream(new Buffer(fixture))}));
     });
   });
 
   describe('with external files', function() {
-    var filename = path.join(__dirname, './fixture/import.css');
-
     it('should minify include external files', function(done) {
-      this.timeout(5000);
-      gulp.src(filename)
-        .pipe(minifyCSS(opts))
-        .pipe(es.map(function(file) {
-          var source = fs.readFileSync(filename);
-          new CleanCSS(opts).minify(source.toString(), function(errors, expected) {
-            expect(expected.styles).to.be.equal(String(file.contents));
-            done();
-          });
-        }));
+      minifyCSS()
+      .on('error', done)
+      .on('data', function(file) {
+        expect(String(file.contents)).to.be.equal('b{color:green}');
+        done();
+      })
+      .end(new File({
+        path: 'test/fixture/foo/bar/importer.css',
+        contents: new Buffer('@import url("../../import.css");')
+      }));
     });
   });
 
   describe('with errors', function() {
-    var filename = path.join(__dirname, './fixture/import-error.css');
-
-    it('should emit gutil.PluginError', function(done) {
-      gulp.src(filename)
-          .pipe(minifyCSS(opts))
-          .on('error', function(err) {
-            expect(err).to.be.instanceOf(PluginError);
-            done();
-          });
+    it('should minify include external files', function(done) {
+      minifyCSS()
+      .on('error', function(err) {
+        expect(err).to.be.instanceOf(PluginError);
+        done();
+      })
+      .end(new File({
+        contents: new Buffer('@import url("../../import.css");')
+      }));
     });
-  });
-});
-
-describe('does not loose other properties in the file object', function() {
-  var filename = path.join(__dirname, './fixture/index.css');
-
-  it('should pass through the same file instance', function(done) {
-    var originalFile;
-    gulp.src(filename)
-    .pipe(es.mapSync(function(file) {
-      originalFile = file;
-      return file;
-    }))
-    .pipe(minifyCSS())
-    .pipe(es.map(function(file) {
-      expect(file).to.equal(originalFile);
-      done();
-    }));
-  });
-
-  it('should preserve additional properties on the original file instance', function(done) {
-    gulp.src(filename)
-    .pipe(es.mapSync(function(file) {
-      file.someProperty = 42;
-      return file;
-    }))
-    .pipe(minifyCSS())
-    .pipe(es.map(function(file) {
-      expect(file.someProperty).to.equal(42);
-      done();
-    }));
   });
 });

@@ -1,14 +1,30 @@
 // jscs:disable maximumLineLength
 'use strict';
 
-var gulp = require('gulp'),
-  expect = require('chai').expect,
-  minifyCSS = require('../'),
-  sourceMaps = require('gulp-sourcemaps'),
-  stylus = require('gulp-stylus'),
-  path = require('path');
+var path = require('path');
+
+var combine = require('stream-combiner2');
+var expect = require('chai').expect;
+var File = require('vinyl');
+var minifyCSS = require('../');
+var sourceMaps = require('gulp-sourcemaps');
+var stylus = require('gulp-stylus');
 
 require('mocha');
+
+var fixture = [
+  '/*! header */',
+  '@import "srcmap-sub/srcmap-sub.css";',
+  '@import url(http://fonts.googleapis.com/css?family=Open+Sans);',
+  '',
+  'p { color: aqua }'
+].join('\n');
+
+var fixtureStylus = [
+  '/*! Special Comment */',
+  '@import "srcmap-sub/srcmap-sub.styl";',
+  '.sourcemap { color: gray };'
+].join('\n');
 
 describe('gulp-minify-css source map', function() {
   var opts = {
@@ -17,84 +33,85 @@ describe('gulp-minify-css source map', function() {
   };
 
   describe('with buffers and gulp-sourcemaps', function() {
-    var filename = path.join(__dirname, './fixture/sourcemap.css'),
-      filenameStylus = path.join(__dirname, './fixture/sourcemap.styl');
-
     it('should generate source map with correct mapping', function(done) {
-      var write = sourceMaps.write();
+      var write = sourceMaps.write()
+      .on('data', function(file) {
+        var mappings = file.sourceMap.mappings;
+        expect(mappings).to.be.equal(';AAAA,EACE,kBCGE;ACJJ,WACE,wBACA,kBACA,gBACA');
 
-      write.on('data', function(file) {
-        expect(';AAAA,WACE,kBCKA,YACA;ACPF,WACE,wBACA,kBACA,gBACA').to.be.equal(file.sourceMap.mappings);
-        var contents = file.contents.toString();
-        expect(/sourceMappingURL=data:application\/json;base64/.test(contents)).to.be.equal(true);
-        done();
-      });
+        var sourcemapRegex = /sourceMappingURL=data:application\/json;base64/;
+        expect(sourcemapRegex.test(String(file.contents))).to.be.equal(true);
 
-      gulp.src(filename)
-      .pipe(sourceMaps.init())
-      .pipe(minifyCSS(opts))
-      .pipe(write);
-    });
-
-    it('should generate source map with correct file property', function(done) {
-      var write = sourceMaps.write();
-
-      write.on('data', function(file) {
         expect(file.sourceMap).to.have.property('file');
         expect(file.sourceMap.file).to.be.equal('sourcemap.css');
+
+        expect(file.sourceMap.sources).to.be.deep.equal([
+          'srcmap-sub/srcmap-sub.css',
+          'sourcemap.css',
+          'http://fonts.googleapis.com/css?family=Open+Sans'
+        ]);
         done();
       });
 
-      gulp.src(filename)
-        .pipe(sourceMaps.init())
-        .pipe(minifyCSS(opts))
-        .pipe(write);
-    });
-
-    it('should generate source map with correct sources', function(done) {
-      var write = sourceMaps.write();
-
-      write.on('data', function(file) {
-        expect(file.sourceMap).to.have.property('sources').with.length(3);
-        done();
-      });
-
-      gulp.src(filename)
-        .pipe(sourceMaps.init())
-        .pipe(minifyCSS(opts))
-        .pipe(write);
+      combine.obj(
+        sourceMaps.init(),
+        minifyCSS(opts),
+        write
+      )
+      .on('error', done)
+      .end(new File({
+        base: path.join(__dirname, 'fixture'),
+        path: path.join(__dirname, './fixture/sourcemap.css'),
+        contents: new Buffer(fixture)
+      }));
     });
 
     it('should generate source map with correct sources when using preprocessor (stylus) and gulp.src without base', function(done) {
-      var write = sourceMaps.write();
-
-      write.on('data', function(file) {
-        console.log(file.sourceMap.sources);
-        expect(file.sourceMap).to.have.property('sources').with.length(2);
+      var write = sourceMaps.write()
+      .on('data', function(file) {
+        expect(file.sourceMap.sources).to.be.deep.equal([
+          'srcmap-sub/srcmap-sub.styl',
+          'sourcemap.styl'
+        ]);
         done();
       });
 
-      gulp.src(filenameStylus)
-      .pipe(sourceMaps.init())
-      .pipe(stylus())
-      .pipe(minifyCSS(opts))
-      .pipe(write);
+      combine.obj(
+        sourceMaps.init(),
+        stylus(),
+        minifyCSS(opts),
+        write
+      )
+      .on('error', done)
+      .end(new File({
+        base: path.join(__dirname, 'fixture'),
+        path: path.join(__dirname, 'fixture/sourcemap.styl'),
+        contents: new Buffer(fixtureStylus)
+      }));
     });
 
     it('should generate source map with correct sources when using preprocessor (stylus) and gulp.src with base', function(done) {
-      var write = sourceMaps.write();
-
-      write.on('data', function(file) {
-        console.log(file.sourceMap.sources);
-        expect(file.sourceMap).to.have.property('sources').with.length(2);
+      var write = sourceMaps.write()
+      .on('data', function(file) {
+        expect(file.sourceMap.sources).to.be.deep.equal([
+          'test/fixture/srcmap-sub/srcmap-sub.styl',
+          'test/fixture/sourcemap.styl'
+        ]);
         done();
       });
 
-      gulp.src(filenameStylus, {base: '.'})
-      .pipe(sourceMaps.init())
-      .pipe(stylus())
-      .pipe(minifyCSS(opts))
-      .pipe(write);
+      combine.obj(
+        sourceMaps.init(),
+        stylus(),
+        minifyCSS(opts),
+        write
+      )
+      .on('error', done)
+      .end(new File({
+        base: '.',
+        path: path.join(__dirname, 'fixture/sourcemap.styl'),
+        contents: new Buffer(fixtureStylus)
+      }));
     });
   });
 });

@@ -1,78 +1,88 @@
 'use strict';
 
-var gulp = require('gulp'),
-  expect = require('chai').expect,
-  proxyquire = require('proxyquire'),
-  cacheStub = require('memory-cache'),
-  CleanCSS = require('clean-css'),
-  es = require('event-stream'),
-  path = require('path'),
-  fs = require('fs');
+var path = require('path');
 
-var minifyCSS = proxyquire('../', {
-  'memory-cache': cacheStub
-});
+var bufferstream = require('simple-bufferstream');
+var expect = require('chai').expect;
+var File = require('vinyl');
+var proxyquire = require('proxyquire');
+var cacheStub = require('memory-cache');
+
+var minifyCSS = proxyquire('../', {'memory-cache': cacheStub});
 
 require('mocha');
 
 cacheStub.debug(false);
 
+var rawContents = [
+  '/*! foo */',
+  '/* bar */',
+  'a { color: red; }',
+  '/*! baz */\n'
+].join('\n');
+
+var compiled = '/*! foo */a{color:red}/*! baz */';
+
 describe('gulp-minify-css caching', function() {
   var filename = path.join(__dirname, './fixture/index.css');
-  var rawContents = fs.readFileSync(filename, 'utf8');
-  var compiled = new CleanCSS().minify(rawContents);
-  var src;
   var options = {
     cache: true,
     keepBreaks: false,
     processImport: true
   };
   var p = function(cb) {
-    gulp.src(filename)
-      .pipe(minifyCSS(options))
-      .pipe(es.map(cb));
+    minifyCSS(options)
+    .on('data', cb)
+    .end(new File({
+      path: filename,
+      contents: new Buffer(rawContents)
+    }));
   };
 
-  beforeEach(function() {
-    cacheStub.clear();
-  });
-
   describe('with buffers', function() {
-
-    beforeEach(function() {
-      src = gulp.src(filename);
-    });
-
     it('should not use the cache if option is not given', function(done) {
-      src
-      .pipe(minifyCSS({}))
-      .pipe(es.map(function() {
+      minifyCSS({})
+      .on('error', done)
+      .on('finish', function() {
         expect(cacheStub.size()).to.be.equal(0);
+        cacheStub.clear();
         done();
-      }));
+      })
+      .end(new File({contents: new Buffer(rawContents)}));
     });
 
     it('should use the cache if option is given', function(done) {
-      src
-      .pipe(minifyCSS(options))
-      .pipe(es.map(function() {
+      minifyCSS(options)
+      .on('error', done)
+      .on('finish', function() {
         expect(cacheStub.size()).to.be.equal(1);
         expect(cacheStub.get(filename)).to.deep.equal({
           raw: rawContents,
-          minified: compiled,
+          minified: {
+            styles: compiled,
+            stats: {},
+            errors: [],
+            warnings: []
+          },
           options: options
         });
+        cacheStub.clear();
         done();
+      })
+      .end(new File({
+        path: filename,
+        contents: new Buffer(rawContents)
       }));
     });
 
     it('should return the cached content if the cache is used', function(done) {
       p(function(file) {
-        expect(file.contents.toString()).to.be.equal(compiled.styles);
-        cacheStub.get(filename).minified.styles = 'cached data';
+        expect(String(file.contents)).to.be.equal(compiled);
+        cacheStub.get(filename).minified = {styles: 'a{}'};
 
         p(function(cachedFile) {
-          expect(cachedFile.contents.toString()).to.be.equal('cached data');
+          expect(String(cachedFile.contents)).to.be.equal('a{}');
+          cacheStub.clear();
           done();
         });
       });
@@ -80,42 +90,42 @@ describe('gulp-minify-css caching', function() {
   });
 
   describe('with streams', function() {
-    beforeEach(function() {
-      src = gulp.src(filename, {buffer: false});
-    });
-
-    it('should not use the cache if option is not given', function(done) {
-      src
-      .pipe(minifyCSS({}))
-      .pipe(es.map(function() {
-        expect(cacheStub.size()).to.be.equal(0);
-        done();
-      }));
-    });
-
     it('should use the cache if option is given', function(done) {
-      src
-      .pipe(minifyCSS(options))
-      .pipe(es.map(function() {
-        setTimeout(function() {
-          expect(cacheStub.size()).to.be.equal(1);
-          expect(cacheStub.get(filename)).to.deep.equal({
-            raw: rawContents,
-            minified: compiled,
-            options: options
+      minifyCSS(options)
+      .on('error', done)
+      .on('data', function(file) {
+        file.contents.on('finish', function() {
+          process.nextTick(function() {
+            expect(cacheStub.size()).to.be.equal(1);
+            expect(cacheStub.get(filename)).to.deep.equal({
+              raw: rawContents,
+              minified: {
+                styles: compiled,
+                stats: {},
+                errors: [],
+                warnings: []
+              },
+              options: options
+            });
+            cacheStub.clear();
+            done();
           });
-          done();
-        }, 100);
+        });
+      })
+      .end(new File({
+        path: filename,
+        contents: bufferstream(new Buffer(rawContents))
       }));
     });
 
     it('should return the cached content if the cache is used', function(done) {
       p(function(file) {
-        expect(file.contents.toString()).to.be.equal(compiled.styles);
+        expect(String(file.contents)).to.be.equal(compiled);
         cacheStub.get(filename).minified.styles = 'cached data';
 
         p(function(cachedFile) {
-          expect(cachedFile.contents.toString()).to.be.equal('cached data');
+          expect(String(cachedFile.contents)).to.be.equal('cached data');
+          cacheStub.clear();
           done();
         });
       });
