@@ -1,12 +1,12 @@
 'use strict';
 
 var path = require('path'),
-  PluginError = require('gulp-util').PluginError,
-  CleanCSS = require('clean-css'),
-  through2 = require('through2'),
+  applySourceMap = require('vinyl-sourcemaps-apply'),
   BufferStreams = require('bufferstreams'),
   cache = require('memory-cache'),
-  applySourceMap = require('vinyl-sourcemaps-apply');
+  CleanCSS = require('clean-css'),
+  PluginError = require('gulp-util').PluginError,
+  through2 = require('through2');
 
 function objectIsEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -84,51 +84,46 @@ function minifyCSSGulp (opt) {
     // CSS file they appear in (unless "relativeTo" option is explicitly set by
     // caller)
     var relativeToTmp = opt.relativeTo;
-    opt.relativeTo = relativeToTmp || path.resolve(path.dirname(file.path));
+    opt.relativeTo = opt.relativeTo || path.resolve(path.dirname(file.path));
 
     // Enable sourcemap support if initialized file comes in.
     if (file.sourceMap) {
       opt.sourceMap = JSON.stringify(file.sourceMap);
     }
 
-    try {
-      minify(opt, file, file.contents, function(err, newContents) {
-        if (err) {
-          done(err);
-          return;
-        }
+    minify(opt, file, file.contents, function(err, newContents) {
+      if (err) {
+        done(err);
+        return;
+      }
 
-        // Restore original "relativeTo" value
-        opt.relativeTo = relativeToTmp;
-        file.contents = new Buffer(newContents.styles);
+      // Restore original "relativeTo" value
+      opt.relativeTo = relativeToTmp;
+      //console.log(newContents);
+      file.contents = new Buffer(newContents.styles);
 
-        if (newContents.sourceMap && file.sourceMap) {
-          // clean-css gives bad 'sources' and 'file' properties because we
-          // pass in raw css instead of a file.  So we fix those here.
-          var map = JSON.parse(newContents.sourceMap);
-          map.file = path.relative(file.base, file.path);
-          map.sources = map.sources.map(function(src) {
-            if (src === '__stdin__.css') {
-              return path.relative(file.base, file.path);
-            } else if (path.resolve(src) === path.normalize(src)) {
-              // Path is absolute so imported file had no existing source map.
-              // Trun absolute path in to path relative to file.base.
-              return path.relative(file.base, src);
-            } else {
-              return src;
-            }
-          });
+      if (newContents.sourceMap && file.sourceMap) {
+        // clean-css gives bad 'sources' and 'file' properties because we
+        // pass in raw css instead of a file.  So we fix those here.
+        var map = JSON.parse(newContents.sourceMap);
+        map.file = path.relative(file.base, file.path);
+        map.sources = map.sources.map(function(src) {
+          if (src === '__stdin__.css') {
+            return path.relative(file.base, file.path);
+          } else if (path.resolve(src) === path.normalize(src)) {
+            // Path is absolute so imported file had no existing source map.
+            // Trun absolute path in to path relative to file.base.
+            return path.relative(file.base, src);
+          } else {
+            return src;
+          }
+        });
 
-          applySourceMap(file, map);
-        }
+        applySourceMap(file, map);
+      }
 
-        done(null, file);
-      });
-
-    } catch (err) {
-      this.emit('error', new PluginError('minify-css', err, {fileName: file.path}));
       done(null, file);
-    }
+    });
   }
 
   return through2.obj(modifyContents);
