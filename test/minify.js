@@ -26,8 +26,18 @@ describe('gulp-minify-css minification', function() {
     keepBreaks: true
   };
 
+  it('should not modify empty files', function(done) {
+    minifyCSS(opts)
+    .on('error', done)
+    .on('data', function(file) {
+      expect(file.isNull()).to.be.equal(true);
+      done();
+    })
+    .end(new File());
+  });
+
   describe('with buffers', function() {
-    it('should minify my files', function(done) {
+    it('should minify CSS files', function(done) {
       minifyCSS(opts)
       .on('error', done)
       .on('data', function(file) {
@@ -36,10 +46,23 @@ describe('gulp-minify-css minification', function() {
       })
       .end(new File({contents: new Buffer(fixture)}));
     });
+
+    it('should emit an error when the CSS is corrupt', function(done) {
+      minifyCSS()
+      .on('error', function(err) {
+        expect(err).to.be.instanceOf(PluginError);
+        expect(err.fileName).to.be.equal('foo.css');
+        done();
+      })
+      .end(new File({
+        path: 'foo.css',
+        contents: new Buffer('@import url("../../external.css");')
+      }));
+    });
   });
 
   describe('with streams', function() {
-    it('should minify my files', function(done) {
+    it('should minify CSS files', function(done) {
       minifyCSS(opts)
       .on('error', done)
       .on('data', function(file) {
@@ -51,6 +74,19 @@ describe('gulp-minify-css minification', function() {
       })
       .end(new File({contents: bufferstream(new Buffer(fixture))}));
     });
+
+    it('should emit an error when the CSS is corrupt', function(done) {
+      minifyCSS()
+      .on('error', function(err) {
+        expect(err).to.be.instanceOf(PluginError);
+        expect(err.fileName).to.be.equal('foo.css');
+        done();
+      })
+      .end(new File({
+        path: 'foo.css',
+        contents: bufferstream(new Buffer('@import url("../../external.css");'))
+      }));
+    });
   });
 
   describe('with external files', function() {
@@ -58,25 +94,12 @@ describe('gulp-minify-css minification', function() {
       minifyCSS()
       .on('error', done)
       .on('data', function(file) {
-        expect(String(file.contents)).to.be.equal('b{color:green}');
+        expect(String(file.contents)).to.be.equal('p{text-align:center;color:green}');
         done();
       })
       .end(new File({
-        path: 'test/fixture/foo/bar/importer.css',
-        contents: new Buffer('@import url("../../import.css");')
-      }));
-    });
-  });
-
-  describe('with errors', function() {
-    it('should minify include external files', function(done) {
-      minifyCSS()
-      .on('error', function(err) {
-        expect(err).to.be.instanceOf(PluginError);
-        done();
-      })
-      .end(new File({
-        contents: new Buffer('@import url("../../import.css");')
+        path: 'test/fixtures/foo/bar/importer.css',
+        contents: new Buffer('@import url("../../external.css");')
       }));
     });
   });

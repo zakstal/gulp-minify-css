@@ -48,7 +48,10 @@ describe('gulp-minify-css caching', function() {
         cacheStub.clear();
         done();
       })
-      .end(new File({contents: new Buffer(rawContents)}));
+      .end(new File({
+        path: filename,
+        contents: new Buffer(rawContents)
+      }));
     });
 
     it('should use the cache if option is given', function(done) {
@@ -93,24 +96,20 @@ describe('gulp-minify-css caching', function() {
     it('should use the cache if option is given', function(done) {
       minifyCSS(options)
       .on('error', done)
-      .on('data', function(file) {
-        file.contents.on('finish', function() {
-          process.nextTick(function() {
-            expect(cacheStub.size()).to.be.equal(1);
-            expect(cacheStub.get(filename)).to.deep.equal({
-              raw: rawContents,
-              minified: {
-                styles: compiled,
-                stats: {},
-                errors: [],
-                warnings: []
-              },
-              options: options
-            });
-            cacheStub.clear();
-            done();
-          });
+      .on('finish', function() {
+        expect(cacheStub.size()).to.be.equal(1);
+        expect(cacheStub.get(filename)).to.deep.equal({
+          raw: rawContents,
+          minified: {
+            styles: compiled,
+            stats: {},
+            errors: [],
+            warnings: []
+          },
+          options: options
         });
+        cacheStub.clear();
+        done();
       })
       .end(new File({
         path: filename,

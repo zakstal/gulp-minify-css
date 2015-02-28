@@ -14,7 +14,7 @@ require('mocha');
 
 var fixture = [
   '/*! header */',
-  '@import "srcmap-sub/srcmap-sub.css";',
+  '@import "external.css";',
   '@import url(http://fonts.googleapis.com/css?family=Open+Sans);',
   '',
   'p { color: aqua }'
@@ -22,8 +22,8 @@ var fixture = [
 
 var fixtureStylus = [
   '/*! Special Comment */',
-  '@import "srcmap-sub/srcmap-sub.styl";',
-  '.sourcemap { color: gray };'
+  '@import "external.css";',
+  'p { color: gray; }'
 ].join('\n');
 
 describe('gulp-minify-css source map', function() {
@@ -46,7 +46,7 @@ describe('gulp-minify-css source map', function() {
         expect(file.sourceMap.file).to.be.equal('sourcemap.css');
 
         expect(file.sourceMap.sources).to.be.deep.equal([
-          'srcmap-sub/srcmap-sub.css',
+          'external.css',
           'sourcemap.css',
           'http://fonts.googleapis.com/css?family=Open+Sans'
         ]);
@@ -60,8 +60,8 @@ describe('gulp-minify-css source map', function() {
       )
       .on('error', done)
       .end(new File({
-        base: path.join(__dirname, 'fixture'),
-        path: path.join(__dirname, './fixture/sourcemap.css'),
+        base: path.join(__dirname, 'fixtures'),
+        path: path.join(__dirname, './fixtures/sourcemap.css'),
         contents: new Buffer(fixture)
       }));
     });
@@ -70,22 +70,22 @@ describe('gulp-minify-css source map', function() {
       var write = sourceMaps.write()
       .on('data', function(file) {
         expect(file.sourceMap.sources).to.be.deep.equal([
-          'srcmap-sub/srcmap-sub.styl',
-          'sourcemap.styl'
+          'external.css',
+          'importer.css'
         ]);
         done();
       });
 
       combine.obj(
-        sourceMaps.init(),
+        sourceMaps.init({loadMaps: true}),
         stylus(),
         minifyCSS(opts),
         write
       )
       .on('error', done)
       .end(new File({
-        base: path.join(__dirname, 'fixture'),
-        path: path.join(__dirname, 'fixture/sourcemap.styl'),
+        base: path.join(__dirname, 'fixtures'),
+        path: path.join(__dirname, 'fixtures/importer.css'),
         contents: new Buffer(fixtureStylus)
       }));
     });
@@ -94,8 +94,8 @@ describe('gulp-minify-css source map', function() {
       var write = sourceMaps.write()
       .on('data', function(file) {
         expect(file.sourceMap.sources).to.be.deep.equal([
-          'test/fixture/srcmap-sub/srcmap-sub.styl',
-          'test/fixture/sourcemap.styl'
+          'test/fixtures/external.css',
+          'test/fixtures/importer.css'
         ]);
         done();
       });
@@ -109,7 +109,7 @@ describe('gulp-minify-css source map', function() {
       .on('error', done)
       .end(new File({
         base: '.',
-        path: path.join(__dirname, 'fixture/sourcemap.styl'),
+        path: path.join(__dirname, 'fixtures/importer.css'),
         contents: new Buffer(fixtureStylus)
       }));
     });
