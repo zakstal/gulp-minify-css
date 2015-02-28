@@ -28,12 +28,11 @@
     "coveralls": "${npm_package_scripts_coverage} && istanbul-coveralls"
   },
   "dependencies": {
-    "bufferstreams": "^1.0.1",
     "clean-css": "^3.1.1",
     "gulp-util": "^3.0.4",
     "memory-cache": "0.1.0",
-    "object-assign": "^2.0.0",
     "through2": "^0.6.3",
+    "vinyl-bufferstream": "^1.0.1",
     "vinyl-sourcemaps-apply": "^0.1.4"
   },
   "devDependencies": {
