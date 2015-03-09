@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/jonathanepollack/gulp-minify-css.svg?branch=master)](https://travis-ci.org/jonathanepollack/gulp-minify-css)
+[![Build status](https://ci.appveyor.com/api/projects/status/eidg7ju694an2i74?svg=true)](https://ci.appveyor.com/project/ShinnosukeWatanabe/gulp-minify-css)
 [![Coverage Status](https://img.shields.io/coveralls/jonathanepollack/gulp-minify-css.svg)](https://coveralls.io/r/jonathanepollack/gulp-minify-css)
 
 ## Breaking Changes from v0.3 to v0.4 (due to clean-css)
