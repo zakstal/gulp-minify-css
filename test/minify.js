@@ -47,6 +47,19 @@ describe('gulp-minify-css minification', function() {
       .end(new File({contents: new Buffer(fixture)}));
     });
 
+    it('should not modify the original option object', function(done) {
+      minifyCSS(opts)
+      .on('error', done)
+      .on('finish', function() {
+        expect(opts).to.be.eql({
+          keepSpecialComments: 1,
+          keepBreaks: true
+        });
+        done();
+      })
+      .end(new File({contents: new Buffer(fixture)}));
+    });
+
     it('should emit an error when the CSS is corrupt', function(done) {
       minifyCSS()
       .on('error', function(err) {
