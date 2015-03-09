@@ -1,6 +1,7 @@
 'use strict';
 
 var bufferstream = require('simple-bufferstream');
+var EOL = require('os').EOL;
 var expect = require('chai').expect;
 var PluginError = require('gulp-util').PluginError;
 var minifyCSS = require('../');
@@ -18,7 +19,7 @@ var fixture = [
 var expected = [
   '/*! foo */',
   'a{color:red}'
-].join('\n');
+].join(EOL);
 
 describe('gulp-minify-css minification', function() {
   var opts = {
