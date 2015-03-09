@@ -2,14 +2,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/eidg7ju694an2i74?svg=true)](https://ci.appveyor.com/project/ShinnosukeWatanabe/gulp-minify-css)
 [![Coverage Status](https://img.shields.io/coveralls/jonathanepollack/gulp-minify-css.svg)](https://coveralls.io/r/jonathanepollack/gulp-minify-css)
 
-## Breaking Changes from v0.3 to v0.4 (due to clean-css)
-
-* `noAdvanced` became `advanced` - make sure to reverse the value;
-* `noAggressiveMerging` became `aggressiveMerging` - make sure to reverse the value;
-* `noRebase` became `rebase` - make sure to reverse the value;
-
-source: [clean-css](https://github.com/jakubpawlowicz/clean-css/blob/475551b6a3ccc94bd5fc7538d07fa32799fb6c4d/README.md)
-
 ## Regarding Issues
 
 This is just a simple gulp plugin, which means it's nothing more than a thin wrapper around `clean-css`. If it looks like you are having CSS related issues, please contact <a href="https://github.com/GoalSmashers/clean-css">clean-css</a>. Only create a new issue if it looks like you're having a problem with the plugin itself.
