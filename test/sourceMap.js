@@ -27,91 +27,84 @@ var fixtureStylus = [
 ].join('\n');
 
 describe('gulp-minify-css source map', function() {
-  var opts = {
-    keepSpecialComments: 1,
-    keepBreaks: true
-  };
+  it('should generate source map with correct mapping', function(done) {
+    var write = sourceMaps.write()
+    .on('data', function(file) {
+      var mappings = file.sourceMap.mappings;
+      expect(mappings).to.be.equal('aAAA,EACE,kBCGE,WCJJ,WACE,wBACA,kBACA,gBACA');
 
-  describe('with buffers and gulp-sourcemaps', function() {
-    it('should generate source map with correct mapping', function(done) {
-      var write = sourceMaps.write()
-      .on('data', function(file) {
-        var mappings = file.sourceMap.mappings;
-        expect(mappings).to.be.equal(';AAAA,EACE,kBCGE;ACJJ,WACE,wBACA,kBACA,gBACA');
+      var sourcemapRegex = /sourceMappingURL=data:application\/json;base64/;
+      expect(sourcemapRegex.test(String(file.contents))).to.be.equal(true);
 
-        var sourcemapRegex = /sourceMappingURL=data:application\/json;base64/;
-        expect(sourcemapRegex.test(String(file.contents))).to.be.equal(true);
+      expect(file.sourceMap).to.have.property('file');
+      expect(file.sourceMap.file).to.be.equal('sourcemap.css');
 
-        expect(file.sourceMap).to.have.property('file');
-        expect(file.sourceMap.file).to.be.equal('sourcemap.css');
-
-        expect(file.sourceMap.sources).to.be.deep.equal([
-          'external.css',
-          'sourcemap.css',
-          'http://fonts.googleapis.com/css?family=Open+Sans'
-        ]);
-        done();
-      });
-
-      combine.obj(
-        sourceMaps.init(),
-        minifyCSS(opts),
-        write
-      )
-      .on('error', done)
-      .end(new File({
-        base: path.join(__dirname, 'fixtures'),
-        path: path.join(__dirname, './fixtures/sourcemap.css'),
-        contents: new Buffer(fixture)
-      }));
+      expect(file.sourceMap.sources).to.be.deep.equal([
+        'external.css',
+        'sourcemap.css',
+        'http://fonts.googleapis.com/css?family=Open+Sans'
+      ]);
+      done();
     });
 
-    it('should generate source map with correct sources when using preprocessor (stylus) and gulp.src without base', function(done) {
-      var write = sourceMaps.write()
-      .on('data', function(file) {
-        expect(file.sourceMap.sources).to.be.deep.equal([
-          'external.css',
-          'importer.css'
-        ]);
-        done();
-      });
+    combine.obj(
+      sourceMaps.init(),
+      minifyCSS(),
+      write
+    )
+    .on('error', done)
+    .end(new File({
+      base: path.join(__dirname, 'fixtures'),
+      path: path.join(__dirname, './fixtures/sourcemap.css'),
+      contents: new Buffer(fixture)
+    }));
+  });
 
-      combine.obj(
-        sourceMaps.init({loadMaps: true}),
-        stylus(),
-        minifyCSS(opts),
-        write
-      )
-      .on('error', done)
-      .end(new File({
-        base: path.join(__dirname, 'fixtures'),
-        path: path.join(__dirname, 'fixtures/importer.css'),
-        contents: new Buffer(fixtureStylus)
-      }));
+  it('should generate source map with correct sources when using preprocessor (stylus) and gulp.src without base', function(done) {
+    var write = sourceMaps.write()
+    .on('data', function(file) {
+      expect(file.sourceMap.sources).to.be.deep.equal([
+        'external.css',
+        'importer.css'
+      ]);
+      done();
     });
 
-    it('should generate source map with correct sources when using preprocessor (stylus) and gulp.src with base', function(done) {
-      var write = sourceMaps.write()
-      .on('data', function(file) {
-        expect(file.sourceMap.sources).to.be.deep.equal([
-          'test/fixtures/external.css',
-          'test/fixtures/importer.css'
-        ]);
-        done();
-      });
+    combine.obj(
+      sourceMaps.init({loadMaps: true}),
+      stylus(),
+      minifyCSS(),
+      write
+    )
+    .on('error', done)
+    .end(new File({
+      base: path.join(__dirname, 'fixtures'),
+      path: path.join(__dirname, 'fixtures/importer.css'),
+      contents: new Buffer(fixtureStylus)
+    }));
+  });
 
-      combine.obj(
-        sourceMaps.init(),
-        stylus(),
-        minifyCSS(opts),
-        write
-      )
-      .on('error', done)
-      .end(new File({
-        base: '.',
-        path: path.join(__dirname, 'fixtures/importer.css'),
-        contents: new Buffer(fixtureStylus)
-      }));
+  it('should generate source map with correct sources when using preprocessor (stylus) and gulp.src with base', function(done) {
+    var write = sourceMaps.write()
+    .on('data', function(file) {
+      expect(file.sourceMap.sources).to.be.deep.equal([
+        'test/fixtures/external.css',
+        'test/fixtures/importer.css'
+      ]);
+      done();
     });
+
+    combine.obj(
+      sourceMaps.init(),
+      stylus(),
+      minifyCSS(),
+      write
+    )
+    .on('error', done)
+    .end(new File({
+      base: '.',
+      path: path.join(__dirname, 'fixtures/importer.css'),
+      contents: new Buffer(fixtureStylus)
+    }));
   });
 });
